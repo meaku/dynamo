@@ -1,0 +1,19 @@
+{
+  "name": "dynamo",
+  "description": "Public and private resources",
+  "scripts": {
+    "test": "mocha test/unit/*"
+  },
+  "main": "./lib/index.js",
+  "dependencies": {
+    "aws-sdk": "^2.1.8"
+  },
+  "devDependencies": {
+    "expect.js": "^0.3.1",
+    "mocha": "^2.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/epha/dynamo.git"
+  }
+}
