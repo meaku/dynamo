@@ -62,7 +62,7 @@ function start(options) {
         });
 
         child.on("exit", function () {
-            console.log("exit", arguments);
+            child = null;
         });
 
         if (exports.debug) {
