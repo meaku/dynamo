@@ -38,7 +38,7 @@ describe("Table", function () {
     });
 
     after(function () {
-        localDb.stop();
+        return localDb.stop();
     });
 
     describe("#listTables", function () {
@@ -95,19 +95,19 @@ describe("Table", function () {
                     });
             });
         });
+    });
 
-        describe("#createTable", function () {
+    describe("#createTable", function () {
 
-            it("should create a table if passed a valid object", function () {
+        it("should create a table if passed a valid object", function () {
 
-                return db.createTable(dummies.TestTable)
-                    .then(function (res) {
-                        expectValidTableDescription(res.TableDescription, dummies.TestTable.TableName);
-                    });
-            });
-
-            //TODO add test for create via string!
+            return db.createTable(dummies.TestTable)
+                .then(function (res) {
+                    expectValidTableDescription(res.TableDescription, dummies.TestTable.TableName);
+                });
         });
+
+        //TODO add test for create via string!
     });
 
     describe("#describeTable", function () {

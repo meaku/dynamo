@@ -32,14 +32,11 @@ describe("Local DynamoDB", function () {
             db = new DynamoDB({
                 apiVersion: '2014-04-24',
                 endpoint: "http://localhost:8000"
-                // accessKeyId: SET VIA ENV ,
-                // secretAccessKey: SET VIA ENV,
-                //region: SET VIA ENV
             });
         });
 
         after(function () {
-            localDb.stop();
+            return localDb.stop();
         });
 
         it("should be able to retrieve the tables the promise way", function () {
