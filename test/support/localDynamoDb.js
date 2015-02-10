@@ -18,6 +18,12 @@ var defaultOptions = {
 };
 
 /**
+ * disable/enable local DynamoDB logs
+ * @type {boolean}
+ */
+exports.debug = false;
+
+/**
  * start a local DynamoDB instance
  *
  * @param {Object=} options pass to overwrite defaultOptions
@@ -56,12 +62,13 @@ function start(options) {
         });
 
         child.on("exit", function () {
-           console.log("exit", arguments);
+            console.log("exit", arguments);
         });
 
-        child.stderr.pipe(process.stderr);
-        child.stdout.pipe(process.stdout);
-
+        if (exports.debug) {
+            child.stderr.pipe(process.stderr);
+            child.stdout.pipe(process.stdout);
+        }
     }).timeout(2000);
 }
 
