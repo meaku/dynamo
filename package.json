@@ -2,7 +2,7 @@
   "name": "dynamo",
   "description": "Public and private resources",
   "scripts": {
-    "test": "mocha test/unit/*"
+    "test": "./node_modules/mocha/bin/mocha test/unit/* test/integration/*"
   },
   "main": "./lib/index.js",
   "dependencies": {
