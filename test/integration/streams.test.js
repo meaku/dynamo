@@ -44,6 +44,9 @@ describe("Streams", function () {
 
         it("should return a readable stream", function (done) {
 
+            var i = 0,
+                stream;
+
             db.setSchemas(dummySchemas);
 
             var baseData = {
@@ -57,6 +60,8 @@ describe("Streams", function () {
                 Quantity: 12
             };
 
+
+            //TODO replace with batch create!
             when.iterate(
                 function (x) {
                     return x + 1;
@@ -77,11 +82,9 @@ describe("Streams", function () {
                 },
                 0
             )
-                .done(function (data) {
+                .done(function () {
 
-                    console.log("then");
-
-                    var stream = db.queryStream({
+                    stream = db.queryStream({
                         TableName: dummies.TestTable.TableName,
                         KeyConditions: {
                             UserId: {
@@ -113,15 +116,15 @@ describe("Streams", function () {
 
                     //stream.resume();
 
-                    var i = 0;
+
 
                     stream.on("error", function (err) {
-                        console.log("err", err);
                         throw err;
                     });
 
-                    stream.on("end", function (err) {
-                        console.log("end", i);
+                    stream.on("end", function () {
+                        expect(i).to.eql(500);
+                        done();
                     });
 
                     /*
