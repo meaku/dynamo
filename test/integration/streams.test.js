@@ -101,7 +101,6 @@ describe("Streams", function () {
                     });
 
                     stream.on("data", function (item) {
-                        console.log(item);
                         i++;
                         expect(expectedItems).to.contain(item);
                     });
