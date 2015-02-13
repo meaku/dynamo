@@ -1,8 +1,7 @@
 "use strict";
 
 var expect = require("chai").expect,
-    localDb = require("../support/localDynamoDb"),
-    when = require("when");
+    localDb = require("../support/localDynamoDb");
 
 var DynamoDB = require("../../lib"),
     dummies = require("../support/dummies/tables"),
@@ -44,45 +43,50 @@ describe("Streams", function () {
 
         it("should return a readable stream", function (done) {
 
-            var i = 0,
-                stream;
-
             db.setSchemas(dummySchemas);
 
-            var baseData = {
-                UserId: "mj",
-                FileId: "0",
-                Name: 'bla',
-                Size: 3,
-                ItemsOnMyDesk: ['a', 'b'],
-                testBoolean: true,
-                Pens: {a: 'aa', b: 'bb'},
-                Quantity: 12
+            var expectedItems = [],
+                stream,
+                i = 0,
+                j,
+                total = 25;
+
+
+            function generateItem(FileId) {
+                return {
+
+                    UserId: "mj",
+                    FileId: "" + FileId + "",
+                    Name: 'bla',
+                    Size: 3,
+                    ItemsOnMyDesk: ['a', 'b'],
+                    testBoolean: true,
+                    Pens: {a: 'aa', b: 'bb'},
+                    Quantity: 12
+                };
+            }
+
+            var batchRequest = {
+                RequestItems: {
+                    TestTable: []
+                }
             };
 
+            //populate
+            for (j = 1; j <= total; j++) {
+                expectedItems.push(generateItem(j));
 
-            //TODO replace with batch create!
-            when.iterate(
-                function (x) {
-                    return x + 1;
-                },
+                batchRequest.RequestItems.TestTable.push({
+                    PutRequest: {
+                        Item: generateItem(j)
+                    }
+                });
+            }
 
-                function (i) {
-                    return i >= 500;
-                },
-                function (i) {
+            return db.batchWriteItem(batchRequest)
+             .then(function (res) {
 
-                    baseData.FileId = i;
-
-                    return db.putItem({
-                        TableName: dummies.TestTable.TableName,
-                        Item: baseData
-                    });
-
-                },
-                0
-            )
-                .done(function () {
+                    expect(res.UnprocessedItems).to.eql({});
 
                     stream = db.queryStream({
                         TableName: dummies.TestTable.TableName,
@@ -93,49 +97,25 @@ describe("Streams", function () {
                             }
 
                         },
-                        Limit: 100
+                        Limit: 5
                     });
 
-                    /*
-                     stream.on("readable", function() {
-                     var chunk;
-                     while (null !== (chunk = stream.read())) {
-                     console.log('got %d bytes of data', chunk.length);
-                     }
-
-                     });
-                     //*/
-
-                    ///*
-                    stream.on("data", function (chunk) {
+                    stream.on("data", function (item) {
+                        console.log(item);
                         i++;
-                        console.log("data", i, chunk);
-                        //console.log("data", chunk.Items.length, chunk.LastEvaluatedKey.FileId.S);
+                        expect(expectedItems).to.contain(item);
                     });
-                    //*/
-
-                    //stream.resume();
-
-
 
                     stream.on("error", function (err) {
                         throw err;
                     });
 
                     stream.on("end", function () {
-                        expect(i).to.eql(500);
+                        expect(i).to.eql(total);
                         done();
                     });
 
-                    /*
-                     stream.on("readable", function() {
-                     console.log("readable", stream.read());
-                     });
-                     */
-
                 }, done);
-
-
         });
     });
 });
