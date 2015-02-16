@@ -8,7 +8,21 @@ var transform = require("../../lib/transform"),
 
 describe("transform", function () {
 
+    var t;
+
+    before(function() {
+        t = transform(schemas);
+    });
+
     describe("to", function () {
+
+        it("should throw if item is missing", function() {
+
+           expect(function() {
+               t.to("TestTable");
+           }).to.throwError;
+
+        });
 
         it("should convert an object to the dynamodb represenation", function() {
 
@@ -25,8 +39,6 @@ describe("transform", function () {
                 },
                 Quantity: 12
             };
-
-            var t = transform(schemas);
 
             var res = t.to("TestTable", obj);
 
@@ -60,6 +72,16 @@ describe("transform", function () {
 
      describe("from", function () {
 
+         it("should throw if item is missing", function() {
+
+             expect(function() {
+                 t.from("TestTable");
+             }).to.throwError;
+
+         });
+
+         it("should return ")
+
          it("should convert a dynamodb represenation back to an object", function() {
 
              var dynamoData = {
@@ -82,8 +104,6 @@ describe("transform", function () {
                  testBoolean: {BOOL: true},
                  Quantity: {N: '12'}
              };
-
-             var t = transform(schemas);
 
              var res = t.from("TestTable", dynamoData);
 
