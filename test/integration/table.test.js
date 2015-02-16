@@ -4,7 +4,7 @@ var expect = require("chai").expect,
     localDb = require("../support/localDynamoDb");
 
 var DynamoDB = require("../../lib"),
-    dummies = require("../support/dummies/tables");
+    dummyTables = require("../support/dummies/tables");
 
 function expectValidTableDescription(table, tableName) {
     expect(table).to.be.an("object");
@@ -57,12 +57,12 @@ describe("Table", function () {
 
             it("should return an array containing the table names", function () {
 
-                return db.createTable(dummies.TestTable)
+                return db.createTable(dummyTables.TestTable)
                     .then(function () {
                         return db.listTables();
                     })
                     .then(function (data) {
-                        expect(data.TableNames).to.eql([dummies.TestTable.TableName]);
+                        expect(data.TableNames).to.eql([dummyTables.TestTable.TableName]);
                     });
             });
         });
@@ -85,13 +85,13 @@ describe("Table", function () {
 
             it("should delete the table and return table data", function () {
 
-                return db.createTable(dummies.TestTable)
+                return db.createTable(dummyTables.TestTable)
                     .then(function () {
-                        return db.deleteTable(dummies.TestTable.TableName);
+                        return db.deleteTable(dummyTables.TestTable.TableName);
                     })
                     .then(function (res) {
                         expect(res).to.be.an("object");
-                        expect(res.TableDescription.TableName).to.eql(dummies.TestTable.TableName);
+                        expect(res.TableDescription.TableName).to.eql(dummyTables.TestTable.TableName);
                     });
             });
         });
@@ -101,20 +101,29 @@ describe("Table", function () {
 
         it("should create a table if passed a valid object", function () {
 
-            return db.createTable(dummies.TestTable)
+            return db.createTable(dummyTables.TestTable)
                 .then(function (res) {
-                    expectValidTableDescription(res.TableDescription, dummies.TestTable.TableName);
+                    expectValidTableDescription(res.TableDescription, dummyTables.TestTable.TableName);
                 });
         });
 
-        //TODO add test for create via string!
+        it("should create a table if passed a table name and table has been registered before", function() {
+
+            db.setTables(dummyTables);
+
+            return db.createTable(dummyTables.TestTable.TableName)
+                .then(function (res) {
+                    expectValidTableDescription(res.TableDescription, dummyTables.TestTable.TableName);
+                });
+
+        });
     });
 
     describe("#describeTable", function () {
 
         it("should fail if table does not exist", function () {
 
-            return db.describeTable(dummies.TestTable.TableName)
+            return db.describeTable(dummyTables.TestTable.TableName)
                 .catch(function (err) {
                     expectTableNonExistingError(err);
                 });
@@ -122,23 +131,23 @@ describe("Table", function () {
 
         it("should return a table description for an existing table if passed a valid string", function () {
 
-            return db.createTable(dummies.TestTable)
+            return db.createTable(dummyTables.TestTable)
                 .then(function () {
-                    return db.describeTable(dummies.TestTable.TableName);
+                    return db.describeTable(dummyTables.TestTable.TableName);
                 })
                 .then(function (res) {
-                    expectValidTableDescription(res.Table, dummies.TestTable.TableName);
+                    expectValidTableDescription(res.Table, dummyTables.TestTable.TableName);
                 });
         });
 
         it("should return a table description for an existing table if passed a valid object", function () {
 
-            return db.createTable(dummies.TestTable)
+            return db.createTable(dummyTables.TestTable)
                 .then(function () {
-                    return db.describeTable({TableName: dummies.TestTable.TableName});
+                    return db.describeTable({TableName: dummyTables.TestTable.TableName});
                 })
                 .then(function (res) {
-                    expectValidTableDescription(res.Table, dummies.TestTable.TableName);
+                    expectValidTableDescription(res.Table, dummyTables.TestTable.TableName);
                 });
         });
     });
@@ -146,16 +155,16 @@ describe("Table", function () {
     describe("#hasTable", function () {
 
         it("should resolve with false if table does not exist", function () {
-            return db.hasTable(dummies.TestTable.TableName)
+            return db.hasTable(dummyTables.TestTable.TableName)
                 .then(function (res) {
                    expect(res).to.eql(false);
                 });
         });
 
         it("should return true if table exists", function () {
-            return db.createTable(dummies.TestTable)
+            return db.createTable(dummyTables.TestTable)
                 .then(function () {
-                    return db.hasTable(dummies.TestTable.TableName);
+                    return db.hasTable(dummyTables.TestTable.TableName);
                 })
                 .then(function (res) {
                     expect(res).to.eql(true);
@@ -175,7 +184,7 @@ describe("Table", function () {
 
         it("should fail if table does not exist", function () {
             return db.updateTable({
-                TableName: dummies.TestTable.TableName
+                TableName: dummyTables.TestTable.TableName
             })
                 .catch(function (err) {
                     expectTableNonExistingError(err);
@@ -183,10 +192,10 @@ describe("Table", function () {
         });
 
         it("should update throughput if table exists", function () {
-            return db.createTable(dummies.TestTable)
+            return db.createTable(dummyTables.TestTable)
                 .then(function () {
                     return db.updateTable({
-                        TableName: dummies.TestTable.TableName,
+                        TableName: dummyTables.TestTable.TableName,
                         ProvisionedThroughput:  {
                             ReadCapacityUnits: 50,
                             WriteCapacityUnits: 60
@@ -194,7 +203,7 @@ describe("Table", function () {
                     });
                 })
                 .then(function (res) {
-                    expectValidTableDescription(res.TableDescription, dummies.TestTable.TableName);
+                    expectValidTableDescription(res.TableDescription, dummyTables.TestTable.TableName);
                     expect(res.TableDescription.ProvisionedThroughput.ReadCapacityUnits).to.eql(50);
                     expect(res.TableDescription.ProvisionedThroughput.WriteCapacityUnits).to.eql(60);
                 });
