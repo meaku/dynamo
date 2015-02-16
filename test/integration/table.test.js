@@ -145,21 +145,20 @@ describe("Table", function () {
 
     describe("#hasTable", function () {
 
-        it("should fail if table does not exist", function () {
-
+        it("should resolve with false if table does not exist", function () {
             return db.hasTable(dummies.TestTable.TableName)
-                .catch(function (err) {
-                    expectTableNonExistingError(err);
+                .then(function (res) {
+                   expect(res).to.eql(false);
                 });
         });
 
-        it("should return the table description if a table exists", function () {
+        it("should return true if table exists", function () {
             return db.createTable(dummies.TestTable)
                 .then(function () {
-                    return db.describeTable(dummies.TestTable.TableName);
+                    return db.hasTable(dummies.TestTable.TableName);
                 })
                 .then(function (res) {
-                    expectValidTableDescription(res.Table, dummies.TestTable.TableName);
+                    expect(res).to.eql(true);
                 });
         });
     });
