@@ -154,10 +154,11 @@ describe("Table", function () {
 
     describe("#hasTable", function () {
 
-        it("should resolve with false if table does not exist", function () {
-            return db.hasTable(dummyTables.TestTable.TableName)
-                .then(function (res) {
-                   expect(res).to.eql(false);
+        it("should return a 'ResourceNotFoundException'", function () {
+
+            return db.hasTable("NonExisting")
+                .catch(function (err) {
+                    expectTableNonExistingError(err);
                 });
         });
 

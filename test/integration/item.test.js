@@ -28,6 +28,14 @@ describe("Item", function () {
         return db.deleteAllTables()
             .then(function () {
                 return db.createTable(dummies.TestTable);
+            })
+            .then(function() {
+                return db.hasTable(dummies.TestTable.TableName);
+            })
+            .then(function(hasTable) {
+                if(!hasTable) {
+                   throw new Error("Could not create Table '" + dummies.TestTable.TableName + "'");
+                }
             });
     });
 
@@ -110,8 +118,8 @@ describe("Item", function () {
                     return db.getItem({
                         TableName: dummies.TestTable.TableName,
                         Key: {
-                            UserId: {S: "1"},
-                            FileId: {S: "xy"}
+                            UserId: 1,
+                            FileId: "xy"
                         }
                     });
                 })
@@ -181,9 +189,64 @@ describe("Item", function () {
                     expect(res.Item).to.eql(data);
                 });
         });
+
+
+        it("should transform request and response if schemas are set", function () {
+
+            db.setSchemas(dummySchemas);
+
+            var data = {
+                UserId: "1",
+                FileId: "xy",
+                Name: "bla",
+                Size: 3,
+                ItemsOnMyDesk: ["a", "b"],
+                testBoolean: true,
+                Pens: {
+                    a: "aa",
+                    b: "bb"
+                },
+                Quantity: 12
+            };
+
+            return db.putItem({
+                TableName: dummies.TestTable.TableName,
+                Item: data
+            })
+                .then(function () {
+                    return db.getItem({
+                        TableName: dummies.TestTable.TableName,
+                        Key: {
+                            UserId: "1",
+                            FileId: "xy"
+                        }
+                    });
+                })
+                .then(function (res) {
+                    expect(res.Item).to.eql(data);
+                });
+        });
     });
 
     describe("#deleteItem", function () {
+
+        function createDummy(data) {
+            db.setSchemas(dummySchemas);
+
+            return db.putItem({
+                TableName: dummies.TestTable.TableName,
+                Item: data
+            })
+                .then(function () {
+                    return db.getItem({
+                        TableName: dummies.TestTable.TableName,
+                        Key: {
+                            UserId: "1",
+                            FileId: "xy"
+                        }
+                    });
+                });
+        }
 
         it("should delete an existing Item", function () {
 
@@ -200,19 +263,7 @@ describe("Item", function () {
                 Quantity: 12
             };
 
-            return db.putItem({
-                TableName: dummies.TestTable.TableName,
-                Item: data
-            })
-                .then(function () {
-                    return db.getItem({
-                        TableName: dummies.TestTable.TableName,
-                        Key: {
-                            UserId: {S: "1"},
-                            FileId: {S: "xy"}
-                        }
-                    });
-                })
+            createDummy(data)
                 .then(function (res) {
 
                     delete db.transform;
@@ -236,7 +287,49 @@ describe("Item", function () {
                         }
                     });
                 })
-                .then(function(res) {
+                .then(function (res) {
+                    expect(res).to.eql({});
+                });
+        });
+
+        it("should delete an existing item transforming keys if schema exists", function () {
+
+            db.setSchemas(dummySchemas);
+
+            var data = {
+                UserId: "1",
+                FileId: "xy",
+                Name: "bla",
+                Size: 3,
+                ItemsOnMyDesk: ["a", "b"],
+                testBoolean: true,
+                Pens: {a: "aa", b: "bb"},
+                Quantity: 12
+            };
+
+            createDummy(data)
+                .then(function (res) {
+
+                    expect(res.Item).to.eql(data);
+
+                    return db.deleteItem({
+                        TableName: dummies.TestTable.TableName,
+                        Key: {
+                            UserId: "1",
+                            FileId: "xy"
+                        }
+                    });
+                })
+                .then(function () {
+                    return db.getItem({
+                        TableName: dummies.TestTable.TableName,
+                        Key: {
+                            UserId: "1",
+                            FileId: "xy"
+                        }
+                    });
+                })
+                .then(function (res) {
                     expect(res).to.eql({});
                 });
         });
