@@ -143,12 +143,12 @@ describe("Streams", function () {
     });
 
 
-    describe.skip("#BatchReadStream", function () {
+    describe("#BatchReadStream", function () {
 
         it("should return a readable stream", function (done) {
 
             var stream,
-                i,
+                i = 0,
                 expectedItems;
 
             db.setSchemas(dummySchemas);
@@ -180,7 +180,7 @@ describe("Streams", function () {
                     });
 
                     stream.on("end", function () {
-                        expect(i).to.eql(total);
+                        expect(i).to.eql(100);
                         done();
                     });
 
