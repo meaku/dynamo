@@ -80,8 +80,6 @@ describe("transform", function () {
 
          });
 
-         it("should return ")
-
          it("should convert a dynamodb represenation back to an object", function() {
 
              var dynamoData = {
