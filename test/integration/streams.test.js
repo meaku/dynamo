@@ -1,72 +1,31 @@
 "use strict";
 
 var expect = require("chai").expect,
-    when = require("when"),
     localDb = require("../support/localDynamoDb");
 
 var DynamoDB = require("../../lib"),
     dummies = require("../support/dummies/tables"),
+    dummyFactory = require("../support/dummyFactory"),
     dummySchemas = require("../support/dummies/schemas");
 
 describe("Streams", function () {
-    var db;
+    var db,
+        dummyItems;
+
+    function generateItem(idx) {
+        return {
+            UserId: "mj",
+            FileId: "" + idx + "",
+            Name: 'bla',
+            Size: 3,
+            ItemsOnMyDesk: ['a', 'b'],
+            testBoolean: true,
+            Pens: {a: 'aa', b: 'bb'},
+            Quantity: 12
+        };
+    }
 
     this.timeout(50000);
-
-    function createDummyData(amount) {
-
-        var createdItems = [];
-
-        db.setSchemas(dummySchemas);
-
-        function generateItem(FileId) {
-            return {
-                UserId: "mj",
-                FileId: "" + FileId + "",
-                Name: 'bla',
-                Size: 3,
-                ItemsOnMyDesk: ['a', 'b'],
-                testBoolean: true,
-                Pens: {a: 'aa', b: 'bb'},
-                Quantity: 12
-            };
-        }
-
-        var j,
-            batchRequest = {
-                RequestItems: {
-                    TestTable: []
-                }
-            },
-            batchRequests = [];
-
-        //populate
-        for (j = 1; j <= amount; j++) {
-
-            createdItems.push(generateItem(j));
-
-            batchRequest.RequestItems.TestTable.push({
-                PutRequest: {
-                    Item: generateItem(j)
-                }
-            });
-        }
-
-        while (batchRequest.RequestItems.TestTable.length > 0) {
-            batchRequests.push({
-                RequestItems: {
-                    TestTable: batchRequest.RequestItems.TestTable.splice(0, 25)
-                }
-            });
-        }
-
-        return when.map(batchRequests, function (batch) {
-            return db.batchWriteItem(batch);
-        })
-            .then(function () {
-                return createdItems;
-            });
-    }
 
     before(function () {
         return localDb.start();
@@ -83,6 +42,12 @@ describe("Streams", function () {
         return db.deleteAllTables()
             .then(function () {
                 return db.createTable(dummies.TestTable);
+            })
+            .then(function () {
+                return dummyFactory.createItems(db, generateItem, 100);
+            })
+            .then(function (res) {
+                dummyItems = res;
             });
     });
 
@@ -100,94 +65,76 @@ describe("Streams", function () {
 
             db.setSchemas(dummySchemas);
 
-            var expectedItems = [],
-                stream,
-                total = 25,
+            var stream,
+                total = 100,
                 i = 0;
 
-            createDummyData(total)
-                .done(function (res) {
+            stream = db.queryStream({
+                TableName: dummies.TestTable.TableName,
+                KeyConditions: {
+                    UserId: {
+                        ComparisonOperator: "EQ",
+                        AttributeValueList: [{S: "mj"}]
+                    }
 
-                    expectedItems = res;
+                },
+                Limit: 25
+            });
 
-                    stream = db.queryStream({
-                        TableName: dummies.TestTable.TableName,
-                        KeyConditions: {
-                            UserId: {
-                                ComparisonOperator: "EQ",
-                                AttributeValueList: [{S: "mj"}]
-                            }
+            stream.on("data", function (item) {
+                i++;
+                expect(dummyItems).to.contain(item);
+            });
 
-                        },
-                        Limit: 5
-                    });
+            stream.on("error", function (err) {
+                throw err;
+            });
 
-                    stream.on("data", function (item) {
-                        i++;
-                        expect(expectedItems).to.contain(item);
-                    });
-
-                    stream.on("error", function (err) {
-                        throw err;
-                    });
-
-                    stream.on("end", function () {
-                        expect(i).to.eql(total);
-                        done();
-                    });
-
-                }, done);
+            stream.on("end", function () {
+                expect(i).to.eql(total);
+                done();
+            });
         });
     });
-
 
     describe("#BatchReadStream", function () {
 
         it("should return a readable stream emitting table and item properties", function (done) {
 
             var stream,
-                i = 0,
-                expectedItems;
+                i = 0;
 
             db.setSchemas(dummySchemas);
 
-            createDummyData(100)
-                .done(function (res) {
-                    expectedItems = res;
+            stream = db.batchGetStream({
+                RequestItems: {
+                    TestTable: {
+                        Keys: dummyItems.map(function (item) {
+                            return {
+                                UserId: item.UserId,
+                                FileId: item.FileId
+                            };
+                        })
+                    }
+                }
+            });
 
-                    stream = db.batchGetStream({
-                        RequestItems: {
-                            TestTable: {
-                                Keys: expectedItems.map(function(item) {
-                                    return {
-                                        UserId: item.UserId,
-                                        FileId: item.FileId
-                                    };
-                                })
-                            }
-                        }
-                    });
+            stream.on("data", function (data) {
+                i++;
+                expect(data).to.have.keys("item", "table");
+                expect(data.table).to.eql("TestTable");
 
-                    stream.on("data", function (data) {
-                        i++;
-                        expect(data).to.have.keys("item","table");
-                        expect(data.table).to.eql("TestTable");
+                expect(dummyItems).to.contain(data.item);
+            });
 
-                        expect(expectedItems).to.contain(data.item);
-                    });
+            stream.on("error", function (err) {
+                throw err;
+            });
 
-                    stream.on("error", function (err) {
-                        throw err;
-                    });
-
-                    stream.on("end", function () {
-                        expect(i).to.eql(100);
-                        done();
-                    });
-
-                }, done);
-
-
+            stream.on("end", function () {
+                expect(i).to.eql(100);
+                done();
+            });
         });
     });
 });
