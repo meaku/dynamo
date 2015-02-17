@@ -60,8 +60,6 @@ describe("Streams", function () {
             });
         }
 
-        console.log("performing " + batchRequests.length + " requests");
-
         return when.map(batchRequests, function (batch) {
             return db.batchWriteItem(batch);
         })
@@ -143,7 +141,7 @@ describe("Streams", function () {
     });
 
 
-    describe("#BatchReadStream", function () {
+    describe.only("#BatchReadStream", function () {
 
         it("should return a readable stream", function (done) {
 
@@ -170,9 +168,9 @@ describe("Streams", function () {
                         }
                     });
 
-                    stream.on("data", function (item) {
+                    stream.on("data", function (data) {
                         i++;
-                        expect(expectedItems).to.contain(item);
+                        expect(expectedItems).to.contain(data.item);
                     });
 
                     stream.on("error", function (err) {
