@@ -263,7 +263,7 @@ describe("Item", function () {
                 Quantity: 12
             };
 
-            createDummy(data)
+            return createDummy(data)
                 .then(function (res) {
 
                     delete db.transform;
@@ -307,7 +307,7 @@ describe("Item", function () {
                 Quantity: 12
             };
 
-            createDummy(data)
+            return createDummy(data)
                 .then(function (res) {
 
                     expect(res.Item).to.eql(data);
