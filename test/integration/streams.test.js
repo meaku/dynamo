@@ -141,9 +141,9 @@ describe("Streams", function () {
     });
 
 
-    describe.only("#BatchReadStream", function () {
+    describe("#BatchReadStream", function () {
 
-        it("should return a readable stream", function (done) {
+        it("should return a readable stream emitting table and item properties", function (done) {
 
             var stream,
                 i = 0,
@@ -170,6 +170,9 @@ describe("Streams", function () {
 
                     stream.on("data", function (data) {
                         i++;
+                        expect(data).to.have.keys("item","table");
+                        expect(data.table).to.eql("TestTable");
+
                         expect(expectedItems).to.contain(data.item);
                     });
 
