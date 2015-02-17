@@ -137,4 +137,42 @@ describe("Streams", function () {
             });
         });
     });
+
+    describe("#ScanStream", function () {
+
+        it("should return a readable stream", function (done) {
+
+            db.setSchemas(dummySchemas);
+
+            var stream,
+                total = 100,
+                i = 0;
+
+            stream = db.scanStream({
+                TableName: dummies.TestTable.TableName,
+                ScanFilter: {
+                    UserId: {
+                        ComparisonOperator: "EQ",
+                        AttributeValueList: [{S: "mj"}]
+                    }
+
+                },
+                Limit: 25
+            });
+
+            stream.on("data", function (item) {
+                i++;
+                expect(dummyItems).to.contain(item);
+            });
+
+            stream.on("error", function (err) {
+                throw err;
+            });
+
+            stream.on("end", function () {
+                expect(i).to.eql(total);
+                done();
+            });
+        });
+    });
 });

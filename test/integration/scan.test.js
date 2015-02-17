@@ -58,7 +58,7 @@ describe("#scan", function () {
             });
     });
 
-    it("should return a table not found expection if table does not exist", function (done) {
+    it("should return a table not found exception if table does not exist", function (done) {
 
         db.scan({
             TableName: "NonExisting",
