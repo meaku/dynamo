@@ -25,6 +25,21 @@ describe("Streams", function () {
         };
     }
 
+    function genDummyData() {
+
+        var items = [];
+
+        for (var i = 1; i <= 110; i++) {
+            items.push({
+                UserId: "1",
+                FileId: i
+            });
+        }
+
+        return items;
+    }
+
+
     this.timeout(50000);
 
     before(function () {
@@ -38,19 +53,6 @@ describe("Streams", function () {
         });
     });
 
-    beforeEach(function () {
-        return db.deleteAllTables()
-            .then(function () {
-                return db.createTable(dummies.TestTable);
-            })
-            .then(function () {
-                return dummyFactory.createItems(db, generateItem, 100);
-            })
-            .then(function (res) {
-                dummyItems = res;
-            });
-    });
-
     after(function () {
         return db.deleteAllTables();
     });
@@ -60,6 +62,19 @@ describe("Streams", function () {
     });
 
     describe("#QueryStream", function () {
+
+        before(function () {
+            return db.deleteAllTables()
+                .then(function () {
+                    return db.createTable(dummies.TestTable);
+                })
+                .then(function () {
+                    return dummyFactory.createItems(db, generateItem, 100);
+                })
+                .then(function (res) {
+                    dummyItems = res;
+                });
+        });
 
         it("should return a readable stream", function (done) {
 
@@ -97,7 +112,71 @@ describe("Streams", function () {
         });
     });
 
+    describe("#ScanStream", function () {
+
+        before(function () {
+            return db.deleteAllTables()
+                .then(function () {
+                    return db.createTable(dummies.TestTable);
+                })
+                .then(function () {
+                    return dummyFactory.createItems(db, generateItem, 100);
+                })
+                .then(function (res) {
+                    dummyItems = res;
+                });
+        });
+
+        it("should return a readable stream", function (done) {
+
+            db.setSchemas(dummySchemas);
+
+            var stream,
+                total = 100,
+                i = 0;
+
+            stream = db.scanStream({
+                TableName: dummies.TestTable.TableName,
+                ScanFilter: {
+                    UserId: {
+                        ComparisonOperator: "EQ",
+                        AttributeValueList: [{S: "mj"}]
+                    }
+
+                },
+                Limit: 25
+            });
+
+            stream.on("data", function (item) {
+                i++;
+                expect(dummyItems).to.contain(item);
+            });
+
+            stream.on("error", function (err) {
+                throw err;
+            });
+
+            stream.on("end", function () {
+                expect(i).to.eql(total);
+                done();
+            });
+        });
+    });
+
     describe("#BatchReadStream", function () {
+
+        before(function () {
+            return db.deleteAllTables()
+                .then(function () {
+                    return db.createTable(dummies.TestTable);
+                })
+                .then(function () {
+                    return dummyFactory.createItems(db, generateItem, 100);
+                })
+                .then(function (res) {
+                    dummyItems = res;
+                });
+        });
 
         it("should return a readable stream emitting table and item properties", function (done) {
 
@@ -138,41 +217,68 @@ describe("Streams", function () {
         });
     });
 
-    describe("#ScanStream", function () {
+    //TODO add test for non-dividable numbers
+    //TODO add test for end -> maybe pass null?
+    //TODO add test for error handling
 
-        it("should return a readable stream", function (done) {
+    describe("#BatchWriteStream", function () {
+
+        before(function () {
+            return db.deleteAllTables()
+                .then(function () {
+                    return db.createTable(dummies.TestTable);
+                });
+        });
+
+        it("should return a writeable stream", function (done) {
 
             db.setSchemas(dummySchemas);
 
-            var stream,
-                total = 100,
-                i = 0;
+            var dummyItems = genDummyData();
+            var stream = db.batchWriteStream();
 
-            stream = db.scanStream({
-                TableName: dummies.TestTable.TableName,
-                ScanFilter: {
-                    UserId: {
-                        ComparisonOperator: "EQ",
-                        AttributeValueList: [{S: "mj"}]
+            dummyItems = dummyItems.map(function (item) {
+                return {
+                    table: "TestTable",
+                    operation: "put",
+                    data: item
+                };
+            });
+
+            stream.on("finish", done);
+
+            stream.on("error", done);
+
+            write();
+
+            function write() {
+                var ok = true,
+                    currentItem;
+
+                while (ok && (currentItem = dummyItems.shift()) !== undefined) {
+
+                    if (dummyItems.length === 0) {
+                        stream.end(currentItem, function (err) {
+                        });
+                        break;
                     }
 
-                },
-                Limit: 25
-            });
+                    ok = stream.write(currentItem, function () {
+                    });
 
-            stream.on("data", function (item) {
-                i++;
-                expect(dummyItems).to.contain(item);
-            });
+                    //console.log("written", currentItem.data.FileId, ok);
 
-            stream.on("error", function (err) {
-                throw err;
-            });
+                    if (!ok) {
+                        stream.once("drain", write);
+                        break;
+                    }
+                }
+            }
 
-            stream.on("end", function () {
-                expect(i).to.eql(total);
-                done();
-            });
         });
+
+
     });
+
+
 });

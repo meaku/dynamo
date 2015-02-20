@@ -9,21 +9,6 @@ function createItems(db, generateItem, amount) {
 
     db.setSchemas(dummySchemas);
 
-    /*
-    function generateItem(idx) {
-        return {
-            UserId: "mj",
-            FileId: "" + idx + "",
-            Name: 'bla',
-            Size: 3,
-            ItemsOnMyDesk: ['a', 'b'],
-            testBoolean: true,
-            Pens: {a: 'aa', b: 'bb'},
-            Quantity: 12
-        };
-    }
-    */
-
     var j,
         batchRequest = {
             RequestItems: {
