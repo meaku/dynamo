@@ -11,7 +11,7 @@ var DynamoDB = require("../../../lib"),
 describe("QueryStream", function () {
   var db,
     dummyItems,
-    total = 100;
+    total = 70;
 
   function generateItem(idx) {
     return {
@@ -60,7 +60,7 @@ describe("QueryStream", function () {
     return db.deleteAllTables();
   });
 
-  it("should return a readable stream", function (done) {
+  it("should return all created items", function (done) {
 
     db.setSchemas(dummySchemas);
 
