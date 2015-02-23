@@ -217,10 +217,6 @@ describe("Streams", function () {
         });
     });
 
-    //TODO add test for non-dividable numbers
-    //TODO add test for end -> maybe pass null?
-    //TODO add test for error handling
-
     describe("#BatchWriteStream", function () {
 
         before(function () {
