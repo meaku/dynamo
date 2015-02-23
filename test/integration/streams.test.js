@@ -25,11 +25,11 @@ describe("Streams", function () {
         };
     }
 
-    function genDummyData() {
+    function genDummyData(limit) {
 
         var items = [];
 
-        for (var i = 1; i <= 110; i++) {
+        for (var i = 1; i <= limit; i++) {
             items.push({
                 UserId: "1",
                 FileId: i
@@ -230,11 +230,11 @@ describe("Streams", function () {
                 });
         });
 
-        it("should return a writeable stream", function (done) {
+        it("should return a writeable stream which signals backpressure", function (done) {
 
             db.setSchemas(dummySchemas);
 
-            var dummyItems = genDummyData();
+            var dummyItems = genDummyData(50);
             var stream = db.batchWriteStream();
 
             dummyItems = dummyItems.map(function (item) {
@@ -266,8 +266,6 @@ describe("Streams", function () {
                     ok = stream.write(currentItem, function () {
                     });
 
-                    //console.log("written", currentItem.data.FileId, ok);
-
                     if (!ok) {
                         stream.once("drain", write);
                         break;
@@ -277,8 +275,59 @@ describe("Streams", function () {
 
         });
 
+        it("should handle end and flush accordingly", function (done) {
 
+            var limit = 60,
+                count = 0;
+
+            db.setSchemas(dummySchemas);
+
+            var dummyItems = genDummyData(limit);
+            var stream = db.batchWriteStream();
+
+            dummyItems = dummyItems.map(function (item) {
+                return {
+                    table: "TestTable",
+                    operation: "put",
+                    data: item
+                };
+            });
+
+            stream.on("finish", function() {
+                //end will be emitted as "finish" event
+                expect(count).to.eql(limit-1);
+                done();
+            });
+
+            stream.on("error", done);
+
+            function afterWrite(err) {
+                count++;
+                expect(err).to.eql(undefined);
+            }
+
+            write();
+
+            function write() {
+                var ok = true,
+                    currentItem;
+
+                while (ok && (currentItem = dummyItems.shift()) !== undefined) {
+
+                    if (dummyItems.length === 0) {
+                        stream.end(currentItem);
+                        break;
+                    }
+
+                    ok = stream.write(currentItem, afterWrite);
+
+                    if (!ok) {
+                        stream.once("drain", write);
+                        break;
+                    }
+                }
+            }
+
+        });
     });
-
-
 });
