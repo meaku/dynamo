@@ -13,7 +13,7 @@ beforeEach(function () {
 
 describe("batchGetItem", function () {
 
-  it("should not retry if unprocessedKeys is an empty Object", function () {
+  it("should not retry if unprocessedKeys is an empty object", function () {
 
     var responses = {
       TableA: [
@@ -45,7 +45,7 @@ describe("batchGetItem", function () {
 
   });
 
-  it("should not retry if unprocessedKeys contains keys", function () {
+  it("should retry until unprocessedKeys contains no more keys", function () {
 
     var responses = {
         TableA: [
