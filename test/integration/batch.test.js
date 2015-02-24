@@ -40,8 +40,7 @@ describe("batch operations", function () {
         return localDb.stop();
     });
 
-
-    describe("#batchWriteItems", function () {
+    describe("#batchWriteItems / #batchGetItems", function () {
 
         it("should write a batch of item to the database", function () {
 
@@ -59,11 +58,11 @@ describe("batch operations", function () {
 
                     UserId: "mj",
                     FileId: "" + FileId + "",
-                    Name: 'bla',
+                    Name: "bla",
                     Size: 3,
-                    ItemsOnMyDesk: ['a', 'b'],
+                    ItemsOnMyDesk: ["a", "b"],
                     testBoolean: true,
-                    Pens: {a: 'aa', b: 'bb'},
+                    Pens: {a: "aa", b: "bb"},
                     Quantity: 12
                 };
             }
