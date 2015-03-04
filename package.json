@@ -24,9 +24,6 @@
   },
   "homepage": "https://github.com/epha/dynamo",
   "version": "1.0.0",
-  "bin": {
-    "dynamo": "localDynamo.js"
-  },
   "directories": {
     "example": "example",
     "test": "test"
