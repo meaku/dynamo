@@ -57,9 +57,9 @@ describe("Item", function () {
                 Name: {S: "bla"},
                 Size: {N: "3"},
                 ItemsOnMyDesk: {
-                    L: [
+                  L: [
                         {S: "a"},
-                        {S: "b"}
+                        {N: "1"}
                     ]
                 },
                 Pens: {
@@ -104,7 +104,7 @@ describe("Item", function () {
                 FileId: "xy",
                 Name: "bla",
                 Size: 3,
-                ItemsOnMyDesk: ["a", "b"],
+                ItemsOnMyDesk: ["a", 1],
                 testBoolean: true,
                 Pens: {a: "aa", b: "bb"},
                 Quantity: 12
@@ -118,7 +118,7 @@ describe("Item", function () {
                     return db.getItem({
                         TableName: dummies.TestTable.TableName,
                         Key: {
-                            UserId: 1,
+                            UserId: "1",
                             FileId: "xy"
                         }
                     });
@@ -133,7 +133,9 @@ describe("Item", function () {
 
         it("should return {} if an item could be found", function () {
 
-            return db.getItem({
+          db.transform = null;
+
+          return db.getItem({
                 TableName: dummies.TestTable.TableName,
                 Key: {
                     UserId: {S: "2"},
@@ -155,7 +157,7 @@ describe("Item", function () {
                 ItemsOnMyDesk: {
                     L: [
                         {S: "a"},
-                        {S: "b"}
+                        {N: "1" }
                     ]
                 },
                 Pens: {
