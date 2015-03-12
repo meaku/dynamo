@@ -9,6 +9,8 @@ beforeEach(function () {
     apiVersion: "2014-04-24",
     endpoint: "http://localhost:8000"
   });
+
+  db.useTransform(false);
 });
 
 describe("batchWriteItem", function () {

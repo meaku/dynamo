@@ -4,8 +4,7 @@ var expect = require("chai").expect,
   localDb = require("../../support/localDynamoDb");
 
 var DynamoDB = require("../../../lib"),
-  dummies = require("../../support/dummies/tables"),
-  dummySchemas = require("../../support/dummies/schemas");
+  dummies = require("../../support/dummies/tables");
 
 describe("BatchWriteStream", function () {
 
@@ -53,7 +52,7 @@ describe("BatchWriteStream", function () {
 
   it("should return a writeable stream which signals backpressure", function (done) {
 
-    db.setSchemas(dummySchemas);
+    db.useTransform();
 
     var dummyItems = genDummyData(50);
     var stream = db.batchWriteStream();
@@ -129,7 +128,7 @@ describe("BatchWriteStream", function () {
     var limit = 60,
       count = 0;
 
-    db.setSchemas(dummySchemas);
+    db.useTransform();
 
     var baseDummyItems = genDummyData(limit);
     var stream = db.batchWriteStream();
