@@ -1,13 +1,12 @@
 "use strict";
 
-var when = require("when"),
-    dummySchemas = require("./dummies/schemas");
+var when = require("when");
 
 function createItems(db, generateItem, amount) {
 
     var createdItems = [];
 
-    db.setSchemas(dummySchemas);
+    db.useTransform();
 
     var j,
         batchRequest = {

@@ -4,9 +4,7 @@ var expect = require("chai").expect,
     localDb = require("../support/localDynamoDb");
 
 var DynamoDB = require("../../lib"),
-    dummies = require("../support/dummies/tables"),
-    dummySchemas = require("../support/dummies/schemas");
-
+    dummies = require("../support/dummies/tables");
 
 describe("batch operations", function () {
 
@@ -51,7 +49,7 @@ describe("batch operations", function () {
                 expectedItems.push(generateItem(j));
             }
 
-            db.setSchemas(dummySchemas);
+            db.useTransform();
 
             function generateItem(FileId) {
                 return {

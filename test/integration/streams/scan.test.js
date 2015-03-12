@@ -5,8 +5,7 @@ var expect = require("chai").expect,
 
 var DynamoDB = require("../../../lib"),
   dummies = require("../../support/dummies/tables"),
-  dummyFactory = require("../../support/dummyFactory"),
-  dummySchemas = require("../../support/dummies/schemas");
+  dummyFactory = require("../../support/dummyFactory");
 
 describe("Streams", function () {
   var db,
@@ -63,7 +62,7 @@ describe("Streams", function () {
 
   it("should return a readable stream", function (done) {
 
-    db.setSchemas(dummySchemas);
+    db.useTransform();
 
     var stream,
       i = 0;

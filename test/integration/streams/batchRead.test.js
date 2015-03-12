@@ -5,8 +5,7 @@ var expect = require("chai").expect,
 
 var DynamoDB = require("../../../lib"),
     dummies = require("../../support/dummies/tables"),
-    dummyFactory = require("../../support/dummyFactory"),
-    dummySchemas = require("../../support/dummies/schemas");
+    dummyFactory = require("../../support/dummyFactory");
 
 describe("BatchReadStream", function () {
     var db,
@@ -65,7 +64,7 @@ describe("BatchReadStream", function () {
         var stream,
             i = 0;
 
-        db.setSchemas(dummySchemas);
+        db.useTransform();
 
         stream = db.batchGetStream({
             RequestItems: {

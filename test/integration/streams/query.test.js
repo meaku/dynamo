@@ -5,8 +5,7 @@ var expect = require("chai").expect,
 
 var DynamoDB = require("../../../lib"),
   dummies = require("../../support/dummies/tables"),
-  dummyFactory = require("../../support/dummyFactory"),
-  dummySchemas = require("../../support/dummies/schemas");
+  dummyFactory = require("../../support/dummyFactory");
 
 describe("QueryStream", function () {
   var db,
@@ -62,7 +61,7 @@ describe("QueryStream", function () {
 
   it("should return all created items", function (done) {
 
-    db.setSchemas(dummySchemas);
+    db.useTransform();
 
     var stream,
       i = 0;
